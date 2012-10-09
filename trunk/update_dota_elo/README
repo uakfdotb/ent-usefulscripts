@@ -16,3 +16,6 @@ Specifically, the following information will be maintained for each player (name
  * courier kills
 
 These can then be retrieved efficiently.
+
+It is recommended to set this up as a cronjob every five minutes:
+	*/5 * * * * /path/to/update_dota_elo/update_dota_elo /path/to/update_dota_elo/update_dota_elo.cfg > /dev/null
