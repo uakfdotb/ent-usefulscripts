@@ -1,0 +1,18 @@
+ent-usefulscripts/update_dota_elo aggregates DotA statistics.
+
+Specifically, the following information will be maintained for each player (name-realm pair):
+ * ELO score
+ * total DotA games played here
+ * wins
+ * losses
+ * kills
+ * deaths
+ * creep kills
+ * creep denies
+ * assists
+ * neutral kills
+ * tower kills
+ * rax kills
+ * courier kills
+
+These can then be retrieved efficiently.
