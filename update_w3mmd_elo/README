@@ -1,0 +1,18 @@
+ent-usefulscripts/update_w3mmd_elo aggregates W3MMD statistics.
+
+Specifically, the following information will be maintained for each player (name-realm-category pair):
+ * ELO score
+ * total [category] games played here
+ * wins
+ * losses
+
+Other statistics (such as kills and deaths) can be maintained by modifying the source code.
+Examples for tree tag, battleships, and elite snipers are shown.
+
+Note: the map must implement W3MMD.
+	additionally, W3MMD statistics must be saved (map_type = w3mmd, map_statsw3mmdcategory = [category])
+
+Using this, statistics can then be retrieved efficiently.
+
+It is recommended to set this up as a cronjob every five minutes:
+	*/5 * * * * /path/to/update_w3mmd_elo/update_w3mmd_elo /path/to/update_w3mmd_elo/update_w3mmd_elo.cfg > /dev/null
