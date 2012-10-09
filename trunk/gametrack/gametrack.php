@@ -12,7 +12,7 @@
 #  additionally, they are both stored as comma-delimited strings
 #  to retrieve an array of ID integers, use explode(',', $str)
 
-# it is recommend to set this up as a cronjob every five minutes:
+# it is recommended to set this up as a cronjob every five minutes:
 #    */5 * * * * cd /path/to/gametrack/ && php gametrack.php > /dev/null
 
 # BEGIN CONFIGURATION
