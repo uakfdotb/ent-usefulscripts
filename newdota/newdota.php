@@ -3,7 +3,7 @@
 # newdota will notify you of updates to the popular DotA Allstars map by email
 # you must have PHP email setup properly
 
-# it is recommend to set this up as a cronjob every ten minutes:
+# it is recommended to set this up as a cronjob every ten minutes:
 #   */10 * * * * cd /path/to/newdota/ && php newdota.php > newdota.log
 # or, if you don't like logs:
 #   */10 * * * * cd /path/to/newdota/ && php newdota.php > /dev/null
