@@ -241,6 +241,9 @@ int main( int argc, char **argv )
 				float team_ratings[2];
 				float team_winners[2];
 				int team_numplayers[2];
+				int ranking[12];
+				int wins[12];
+				int loses[12];
 				
 				team_ratings[0] = 0.0;
 				team_ratings[1] = 0.0;
@@ -326,7 +329,7 @@ int main( int argc, char **argv )
 						player_teams[num_players] = 1;
 					}
 					
-					if( Row[7] == "treetag" || Row[7] == "battleships" || Row[7] == "elitesnipers" )
+					if( Row[7] == "treetag" || Row[7] == "battleships" || Row[7] == "elitesnipers" || Row[7] == "gem" )
 					{
 						string QSelectStats = "SELECT varname, value_int FROM w3mmdvars WHERE gameid=" + UTIL_ToString( GameID ) + " AND pid=" + UTIL_ToString( pid );
 						
@@ -367,7 +370,12 @@ int main( int argc, char **argv )
 										if( StatsRow[0] == "kills" ) intstats[num_players][0] = UTIL_ToUInt32( StatsRow[1] );
 										else if( StatsRow[0] == "deaths"  ) intstats[num_players][1] = UTIL_ToUInt32( StatsRow[1] );
 									}
-									
+
+									else if( Row[7] == "gem" )
+									{
+										if( StatsRow[0] == "ranking" ) ranking[num_players] = UTIL_ToUInt32( StatsRow[1] );
+									}
+
 									StatsRow = MySQLFetchRow( StatsResult );
 								}
 							}
@@ -378,6 +386,18 @@ int main( int argc, char **argv )
 
 					num_players++;
 					Row = MySQLFetchRow( Result );
+				}
+
+				if( category == "gem" )
+				{
+					for( int i = 0; i < num_players; i++ )
+					{
+						if( ranking[i] < 1 || ranking[i] > num_players )
+						{
+							cout << "gameid " << UTIL_ToString( GameID ) << " has invalid placement data, ignoring" << endl;
+							ignore = true;
+						}
+					}
 				}
 
 				num_teams = 2;
@@ -393,9 +413,47 @@ int main( int argc, char **argv )
 
 						float old_player_ratings[12];
 						memcpy( old_player_ratings, player_ratings, sizeof( float ) * 12 );
-						team_ratings[0] /= team_numplayers[0];
-						team_ratings[1] /= team_numplayers[1];
-						elo_recalculate_ratings( num_players, player_ratings, player_teams, num_teams, team_ratings, team_winners );
+
+						if( category == "gem" )
+						{
+							float temp_player_ratings[2];
+
+							for( int i = 0; i < num_players; i++ )
+							{
+								team_ratings[0] = temp_player_ratings[0] = old_player_ratings[i];
+
+								for( int j = i + 1; j < num_players; j++ )
+								{
+									if( ranking[i] == ranking[j] ) continue;
+
+									team_ratings[1] = temp_player_ratings[1] = old_player_ratings[j];
+									player_teams[0] = ranking[i] > ranking[j];
+									player_teams[1] = !player_teams[0];
+
+									if( player_teams[1] )
+									{
+										wins[i]++;
+										loses[j]++;
+									}
+									else
+									{
+										loses[i]++;
+										wins[j]++;
+									}
+
+									elo_recalculate_ratings( num_teams, temp_player_ratings, player_teams, num_teams, team_ratings, team_winners );
+
+									player_ratings[i] += temp_player_ratings[0] - old_player_ratings[i];
+									player_ratings[j] += temp_player_ratings[1] - old_player_ratings[j];
+								}
+							}
+						}
+						else
+						{
+							team_ratings[0] /= team_numplayers[0];
+							team_ratings[1] /= team_numplayers[1];
+							elo_recalculate_ratings( num_players, player_ratings, player_teams, num_teams, team_ratings, team_winners );
+						}
 
 						for( int i = 0; i < num_players; i++ )
 						{
@@ -405,7 +463,13 @@ int main( int argc, char **argv )
 
 							uint32_t WinIncrement = (uint32_t) team_winners[player_teams[i]];
 							uint32_t LossIncrement = 1 - WinIncrement;
-							
+
+							if( category == "gem")
+							{
+								WinIncrement = wins[i];
+								LossIncrement = loses[i];
+							}
+
 							if( exists[i] )
 							{
 								string QUpdateScore = "UPDATE w3mmd_elo_scores SET score=" + UTIL_ToString( player_ratings[i], 2 ) + ", games=games+1, wins=wins+" + UTIL_ToString( WinIncrement ) + ", losses=losses+" + UTIL_ToString( LossIncrement ) + ", intstats0=intstats0+" + UTIL_ToString( intstats[i][0] ) + ", intstats1=intstats1+" + UTIL_ToString( intstats[i][1] ) + ", intstats2=intstats2+" + UTIL_ToString( intstats[i][2] ) + ", intstats3=intstats3+" + UTIL_ToString( intstats[i][3] ) + ", intstats4=intstats4+" + UTIL_ToString( intstats[i][4] ) + ", intstats5=intstats5+" + UTIL_ToString( intstats[i][5] ) + ", intstats6=intstats6+" + UTIL_ToString( intstats[i][6] ) + ", intstats7=intstats7+" + UTIL_ToString( intstats[i][7] ) + ", doublestats0=doublestats0+" + UTIL_ToString( doublestats[i][0] ) + ", doublestats1=doublestats1+" + UTIL_ToString( doublestats[i][1] ) + ", doublestats2=doublestats2+" + UTIL_ToString( doublestats[i][2] ) + ", doublestats3=doublestats3+" + UTIL_ToString( doublestats[i][3] ) + " WHERE id=" + UTIL_ToString( rowids[i] );
